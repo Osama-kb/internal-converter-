@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<title>محوّل الملفات المحلي</title>
+<style>
+:root{--bg:#e8eeef;--card:#fff;--ink:#12302f;--mute:#4f6967;--line:#b9cccb;--accent:#1d6b66;--accent-ink:#fff;--ok:#2f8a4f;--warn:#b3541e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1c1c;--card:#172a29;--ink:#e3efee;--mute:#9db7b4;--line:#2f4a48;--accent:#5cc2ba;--accent-ink:#06201e;--ok:#6fd08c;--warn:#f0a070;color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Segoe UI",Tahoma,"Noto Naskh Arabic",system-ui,sans-serif;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:2rem;margin:8px 0 4px;letter-spacing:0}
+.sub{color:var(--mute);margin:0 0 16px}
+.seal{display:flex;gap:10px;align-items:center;border:2px solid var(--accent);border-radius:10px;padding:10px 14px;background:var(--card);margin-bottom:18px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--warn);flex:none}
+.seal.off .dot{background:var(--ok)}
+.seal b{display:block}
+.seal span{color:var(--mute);font-size:.9rem}
+nav{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+nav button{flex:1;min-width:110px;padding:10px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;font:inherit;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+section[hidden]{display:none}
+label{display:block;margin:10px 0 4px;font-weight:600}
+select,input[type=file],textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:130px;resize:vertical}
+.go{margin-top:14px;padding:11px 22px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:700;cursor:pointer}
+.go:disabled{opacity:.5}
+ul.res{list-style:none;padding:0;margin:14px 0 0}
+ul.res li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);word-break:break-all}
+ul.res .err{color:var(--warn)}
+a{color:var(--accent);font-weight:700}
+.note{color:var(--mute);font-size:.88rem;margin-top:12px}
+</style>
+</head>
+<body>
+<main>
+<h1>محوّل الملفات المحلي</h1>
+<p class="sub">حوّل ملفاتك داخل المتصفح. لا يتم رفع أي ملف لأي سيرفر.</p>
+
+<div class="seal" id="seal"><i class="dot"></i><div><b id="st">الاتصال بالإنترنت شغّال</b><span>هذه الصفحة محمية بسياسة تمنع أي طلب شبكي، وتقدر تفصل النت وتجرّبها.</span></div></div>
+
+<nav role="tablist">
+<button role="tab" aria-selected="true" data-t="img">تحويل صور</button>
+<button role="tab" aria-selected="false" data-t="pdf">صور إلى PDF</button>
+<button role="tab" aria-selected="false" data-t="p2i">PDF إلى صور</button>
+<button role="tab" aria-selected="false" data-t="pdfm">دمج وتقسيم PDF</button>
+<button role="tab" aria-selected="false" data-t="txt">نصوص</button>
+</nav>
+
+<section id="img">
+<label for="fi">اختر الصور</label>
+<input id="fi" type="file" accept="image/*" multiple>
+<label for="fmt">التحويل إلى</label>
+<select id="fmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WebP</option></select>
+<button class="go" id="gi">حوّل الصور</button>
+<ul class="res" id="ri"></ul>
+<p class="note">إعادة الترميز تزيل بيانات EXIF مثل الموقع واسم الجهاز.</p>
+</section>
+
+<section id="pdf" hidden>
+<label for="fp">اختر الصور بالترتيب المطلوب</label>
+<input id="fp" type="file" accept="image/*" multiple>
+<button class="go" id="gp">أنشئ PDF</button>
+<ul class="res" id="rp"></ul>
+<p class="note">كل صورة تصير صفحة. بيانات EXIF لا تنتقل للملف.</p>
+</section>
+
+<section id="p2i" hidden>
+<label for="f2">اختر ملف PDF</label>
+<input id="f2" type="file" accept="application/pdf">
+<label for="fm2">التحويل إلى</label>
+<select id="fm2"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option></select>
+<label for="sc2">الجودة</label>
+<select id="sc2"><option value="1.5">عادية</option><option value="2" selected>عالية</option><option value="3">عالية جداً (أبطأ)</option></select>
+<button class="go" id="g2">حوّل الصفحات إلى صور</button>
+<ul class="res" id="r2"></ul>
+<p class="note">كل صفحة تصير صورة مستقلة. تحتاج ملفي pdf.min.mjs وpdf.worker.min.mjs بجانب هذي الصفحة.</p>
+</section>
+
+<section id="pdfm" hidden>
+<label for="fm">دمج: اختر ملفات PDF بالترتيب المطلوب</label>
+<input id="fm" type="file" accept="application/pdf" multiple>
+<button class="go" id="gm">ادمج الملفات</button>
+<ul class="res" id="rm"></ul>
+<label for="fs">تقسيم: اختر ملف PDF</label>
+<input id="fs" type="file" accept="application/pdf">
+<label for="ms">طريقة التقسيم</label>
+<select id="ms"><option value="range">استخراج صفحات محددة</option><option value="each">كل صفحة في ملف مستقل</option></select>
+<label for="rg">الصفحات المطلوبة (مثال: 1-3,5)</label>
+<input id="rg" type="text" dir="ltr" placeholder="1-3,5" style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit">
+<button class="go" id="gs">قسّم الملف</button>
+<ul class="res" id="rs"></ul>
+<p class="note">تحتاج ملف pdf-lib.min.js بجانب هذي الصفحة. الملفات المحمية بكلمة مرور غير مدعومة.</p>
+</section>
+
+<section id="txt" hidden>
+<label for="tm">نوع التحويل</label>
+<select id="tm"><option value="md2html">Markdown إلى HTML</option><option value="html2txt">HTML إلى نص عادي</option><option value="txt2html">نص عادي إلى HTML</option></select>
+<label for="tf">افتح ملفاً (اختياري)</label>
+<input id="tf" type="file" accept=".txt,.md,.html,.htm,text/*">
+<label for="ti">أو الصق النص هنا</label>
+<textarea id="ti"></textarea>
+<button class="go" id="gt">حوّل النص</button>
+<label for="to">النتيجة</label>
+<textarea id="to" readonly></textarea>
+<ul class="res" id="rt"></ul>
+</section>
+
+<p class="note">النسخة الأولى. تحويل Word غير مدعوم بعد.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function net(){const off=!navigator.onLine;$('seal').classList.toggle('off',off);$('st').textContent=off?'أنت الآن بدون إنترنت، والأداة تعمل':'الاتصال بالإنترنت شغّال'}
+addEventListener('online',net);addEventListener('offline',net);net();
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected',x===b));
+ ['img','pdf','p2i','pdfm','txt'].forEach(t=>$(t).hidden=t!==b.dataset.t)});
+
+function add(list,blob,name){
+ const li=document.createElement('li'),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=name;a.textContent='تنزيل '+name;
+ const s=document.createElement('span');s.textContent=(blob.size/1024).toFixed(0)+' KB';
+ li.append(a,s);list.append(li)}
+function fail(list,msg){const li=document.createElement('li');li.className='err';li.textContent=msg;list.append(li)}
+const base=n=>n.replace(/\.[^.]+$/,'');
+async function toCanvas(f,white){
+ const bm=await createImageBitmap(f),c=document.createElement('canvas');
+ c.width=bm.width;c.height=bm.height;const x=c.getContext('2d');
+ if(white){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}
+ x.drawImage(bm,0,0);return c}
+const blobOf=(c,t,q)=>new Promise(r=>c.toBlob(r,t,q));
+
+$('gi').onclick=async()=>{
+ const L=$('ri');L.textContent='';const t=$('fmt').value,ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[t];
+ if(!$('fi').files.length)return fail(L,'اختر صورة واحدة على الأقل.');
+ for(const f of $('fi').files){try{
+  const b=await blobOf(await toCanvas(f,t==='image/jpeg'),t,.92);
+  add(L,b,base(f.name)+'.'+ext)}catch(e){fail(L,'تعذّر تحويل '+f.name+': الملف ليس صورة مدعومة.')}}};
+
+async function imagesToPdf(files){
+ const enc=new TextEncoder(),parts=[],offs=[];let len=0;
+ const push=d=>{const b=typeof d==='string'?enc.encode(d):d;parts.push(b);len+=b.length};
+ const obj=(n,fn)=>{offs[n]=len;push(n+' 0 obj\n');fn();push('\nendobj\n')};
+ const imgs=[];
+ for(const f of files){const c=await toCanvas(f,true),b=await blobOf(c,'image/jpeg',.92);
+  imgs.push({w:c.width,h:c.height,d:new Uint8Array(await b.arrayBuffer())})}
+ const n=imgs.length,total=3+n*3;
+ push('%PDF-1.4\n');
+ obj(1,()=>push('<</Type/Catalog/Pages 2 0 R>>'));
+ obj(2,()=>push('<</Type/Pages/Count '+n+'/Kids['+imgs.map((_,i)=>(3+i*3)+' 0 R').join(' ')+']>>'));
+ imgs.forEach((im,i)=>{const p=3+i*3,w=im.w*.75,h=im.h*.75,cs='q '+w+' 0 0 '+h+' 0 0 cm /Im Do Q';
+  obj(p,()=>push('<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+w+' '+h+']/Contents '+(p+1)+' 0 R/Resources<</XObject<</Im '+(p+2)+' 0 R>>>>>>'));
+  obj(p+1,()=>push('<</Length '+cs.length+'>>\nstream\n'+cs+'\nendstream'));
+  obj(p+2,()=>{push('<</Type/XObject/Subtype/Image/Width '+im.w+'/Height '+im.h+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+im.d.length+'>>\nstream\n');push(im.d);push('\nendstream')})});
+ const xr=len;
+ push('xref\n0 '+total+'\n0000000000 65535 f \n');
+ for(let i=1;i<total;i++)push(String(offs[i]).padStart(10,'0')+' 00000 n \n');
+ push('trailer\n<</Size '+total+'/Root 1 0 R>>\nstartxref\n'+xr+'\n%%EOF');
+ return new Blob(parts,{type:'application/pdf'})}
+
+$('gp').onclick=async()=>{
+ const L=$('rp');L.textContent='';const fs=[...$('fp').files];
+ if(!fs.length)return fail(L,'اختر صورة واحدة على الأقل.');
+ try{add(L,await imagesToPdf(fs),'images.pdf')}catch(e){fail(L,'تعذّر إنشاء الملف: تأكد أن كل الملفات صور مدعومة.')}};
+
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function md(s){
+ const inl=t=>esc(t).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]\((https?:[^)\s"]+)\)/g,'<a href="$2">$1</a>');
+ const out=[];let list=false,m;
+ for(const l of s.split(/\r?\n/)){
+  if(m=l.match(/^(#{1,6})\s+(.*)/)){if(list){out.push('</ul>');list=false}out.push('<h'+m[1].length+'>'+inl(m[2])+'</h'+m[1].length+'>')}
+  else if(m=l.match(/^[-*]\s+(.*)/)){if(!list){out.push('<ul>');list=true}out.push('<li>'+inl(m[1])+'</li>')}
+  else{if(list){out.push('</ul>');list=false}if(l.trim())out.push('<p>'+inl(l)+'</p>')}}
+ if(list)out.push('</ul>');return out.join('\n')}
+const html2txt=s=>(new DOMParser().parseFromString(s,'text/html').body.innerText||new DOMParser().parseFromString(s,'text/html').body.textContent).trim();
+const txt2html=s=>s.split(/\n{2,}/).filter(p=>p.trim()).map(p=>'<p>'+esc(p).replace(/\n/g,'<br>')+'</p>').join('\n');
+
+$('tf').onchange=async e=>{const f=e.target.files[0];if(f)$('ti').value=await f.text()};
+$('gt').onclick=()=>{
+ const L=$('rt');L.textContent='';const s=$('ti').value,m=$('tm').value;
+ if(!s.trim())return fail(L,'الصق نصاً أو افتح ملفاً أولاً.');
+ const r={md2html:md,html2txt,txt2html}[m](s);$('to').value=r;
+ add(L,new Blob([r],{type:'text/plain;charset=utf-8'}),'converted.'+(m==='html2txt'?'txt':'html'))};
+</script>
+<script>
+let plp;
+function loadPL(){return plp||(plp=new Promise((ok,no)=>{
+ if(window.PDFLib)return ok(window.PDFLib);
+ const t=document.createElement('script');t.src='./pdf-lib.min.js';
+ t.onload=()=>ok(window.PDFLib);t.onerror=()=>{plp=null;no()};document.head.append(t)}))}
+const MISS='ملف pdf-lib.min.js غير موجود بجانب الصفحة، أو الصفحة مفتوحة كملف محلي. ارفعه للمستودع وافتح الرابط.';
+const norm=s=>s.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/،/g,',');
+function parseRange(s,n){const r=[];
+ for(const part of s.split(',')){const m=part.trim().match(/^(\d+)(?:-(\d+))?$/);if(!m)return null;
+  const a=+m[1],b=m[2]?+m[2]:a;if(a<1||b>n||a>b)return null;for(let i=a;i<=b;i++)r.push(i-1)}
+ return r.length?r:null}
+const pdfBlob=b=>new Blob([b],{type:'application/pdf'});
+
+$('gm').onclick=async()=>{
+ const L=$('rm');L.textContent='';const fs=[...$('fm').files];
+ if(fs.length<2)return fail(L,'اختر ملفين PDF على الأقل.');
+ let P;try{P=await loadPL()}catch(e){return fail(L,MISS)}
+ try{const out=await P.PDFDocument.create();
+  for(const f of fs){const d=await P.PDFDocument.load(await f.arrayBuffer());
+   (await out.copyPages(d,d.getPageIndices())).forEach(p=>out.addPage(p))}
+  add(L,pdfBlob(await out.save()),'merged.pdf')}
+ catch(e){fail(L,'تعذّر الدمج: أحد الملفات تالف أو محمي بكلمة مرور.')}};
+
+$('gs').onclick=async()=>{
+ const L=$('rs');L.textContent='';const f=$('fs').files[0];
+ if(!f)return fail(L,'اختر ملف PDF أولاً.');
+ let P;try{P=await loadPL()}catch(e){return fail(L,MISS)}
+ try{const src=await P.PDFDocument.load(await f.arrayBuffer()),n=src.getPageCount();
+  let groups;
+  if($('ms').value==='each')groups=src.getPageIndices().map(i=>[i]);
+  else{const r=parseRange(norm($('rg').value),n);
+   if(!r)return fail(L,'الصيغة غير صحيحة. اكتب مثل 1-3,5 وعدد صفحات الملف '+n+'.');groups=[r]}
+  for(const g of groups){const o=await P.PDFDocument.create();
+   (await o.copyPages(src,g)).forEach(p=>o.addPage(p));
+   add(L,pdfBlob(await o.save()),base(f.name)+(groups.length>1?'-'+(g[0]+1):'-selected')+'.pdf')}}
+ catch(e){fail(L,'تعذّر قراءة الملف: تأكد أنه PDF سليم وغير محمي بكلمة مرور.')}};
+</script>
+<script type="module">
+$('g2').onclick=async()=>{
+ const L=$('r2'),b=$('g2');L.textContent='';const f=$('f2').files[0];
+ if(!f)return fail(L,'اختر ملف PDF أولاً.');
+ let lib;
+ try{lib=await import('./pdf.min.mjs');lib.GlobalWorkerOptions.workerSrc='./pdf.worker.min.mjs'}
+ catch(e){return fail(L,'ملفات المكتبة غير موجودة بجانب الصفحة، أو الصفحة مفتوحة كملف محلي. ارفع الملفين للمستودع وافتح الرابط.')}
+ b.disabled=true;
+ try{
+  const pdf=await lib.getDocument({data:await f.arrayBuffer()}).promise,t=$('fm2').value,ext=t==='image/png'?'png':'jpg';
+  for(let i=1;i<=pdf.numPages;i++){
+   b.textContent='جاري التحويل: '+i+' من '+pdf.numPages;
+   const pg=await pdf.getPage(i),vp=pg.getViewport({scale:+$('sc2').value}),c=document.createElement('canvas');
+   c.width=vp.width;c.height=vp.height;const x=c.getContext('2d');
+   x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+   await pg.render({canvasContext:x,viewport:vp}).promise;
+   add(L,await blobOf(c,t,.92),base(f.name)+'-'+i+'.'+ext);c.width=c.height=0}
+ }catch(e){fail(L,e&&e.name==='PasswordException'?'الملف محمي بكلمة مرور.':'تعذّر قراءة الملف: تأكد أنه PDF سليم.')}
+ b.disabled=false;b.textContent='حوّل الصفحات إلى صور'};
+</script>
+</body>
+</html>
